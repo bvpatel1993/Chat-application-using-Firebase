@@ -246,22 +246,27 @@ super.onActivityResult(requestCode,resultCode,data);
                 Toast.makeText(this,"Signed Out!",Toast.LENGTH_SHORT).show();
                 finish();
             }
-            else if(resultCode==RC_PHOTO_PICKER && resultCode==RESULT_OK)
-            {
-                Uri selectedImageUri = data.getData();
-                StorageReference photoRef = mChatPhotoStorageReference.child(selectedImageUri.getLastPathSegment());
-                photoRef.putFile(selectedImageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                          Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        FriendlyMessage friendlyMessage = new FriendlyMessage(null,mUsername,downloadUrl.toString());
-                        mFirebaseReference.push().setValue(friendlyMessage);
-                    }
-                });
+        } else if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
+                      Uri selectedImageUri = data.getData();
+               // Get a reference to store file at chat_photos/<FILENAME>
+                                        StorageReference photoRef = mChatPhotoStorageReference.child(selectedImageUri.getLastPathSegment());
+
+                                // Upload file to Firebase Storage
+                                     photoRef.putFile(selectedImageUri)
+                                        .addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                // When the image has successfully uploaded, we get its download URL
+                                                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+
+                                                        // Set the download URL to the message box, so that the user can send it to the database
+                                                                FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername, downloadUrl.toString());
+                            mFirebaseReference.push().setValue(friendlyMessage);
+                                            }
+                    });
             }
 
         }
-    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
